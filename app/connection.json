@@ -1,0 +1,64 @@
+{
+     "name": "payment_sample",
+     "version": "1.0.0",
+     "client": {
+         "organization": "BankOrg",
+         "connection": {
+             "timeout": {
+                 "peer": {
+                     "endorser": "300"
+                 },
+                 "orderer": "300"
+             }
+         }
+     },
+     "channels": {
+         "mychannel": {
+             "orderers": [
+                 "orderer.andongxu.link"
+             ],
+             "peers": {
+                 "peer0.bank.andongxu.link": {}
+             }
+         }
+     },
+     "organizations": {
+         "BankOrg": {
+             "mspid": "BankOrgMSP",
+             "peers": [
+                 "peer0.bank.andongxu.link"
+             ],
+             "certificateAuthorities": [
+                 "ca.bank.andongxu.link"
+             ]
+         }
+     },
+     "orderers": {
+         "orderer.andongxu.link": {
+             "url": "grpcs://localhost:7050",
+             "grpcOptions": {
+                 "ssl-target-name-override": "orderer.andongxu.link"
+             },
+             "tlsCACerts": {
+                 "pem": "-----BEGIN CERTIFICATE-----\nMIICTDCCAfKgAwIBAgIRANPlQjncA1ap4tzQi3vDk7QwCgYIKoZIzj0EAwIwcDEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xFjAUBgNVBAoTDWFuZG9uZ3h1LmxpbmsxHDAaBgNVBAMTE3Rsc2Nh\nLmFuZG9uZ3h1LmxpbmswHhcNMTkwMzE1MDc1NDAwWhcNMjkwMzEyMDc1NDAwWjBw\nMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2Fu\nIEZyYW5jaXNjbzEWMBQGA1UEChMNYW5kb25neHUubGluazEcMBoGA1UEAxMTdGxz\nY2EuYW5kb25neHUubGluazBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABMevQHDi\nOd6YiHUPwFCscT4wiL0WrryIDAc6lIBfMgGHAqBNNzc8aq7rkKeL5MTNB+RrY2jU\nUjA7/ZACUJ7udi+jbTBrMA4GA1UdDwEB/wQEAwIBpjAdBgNVHSUEFjAUBggrBgEF\nBQcDAgYIKwYBBQUHAwEwDwYDVR0TAQH/BAUwAwEB/zApBgNVHQ4EIgQg4Q7ZfFnS\nAUPMul1oPnnh0IXNOZxpr2SOFp6RV55GRzowCgYIKoZIzj0EAwIDSAAwRQIhAMPu\n/OybliOlcB29dIFen3SMWcT2B/OG8zppC0htcJPiAiBA1EeS8dQxtGGLKl24AWAL\nO2ig1hGJU2CwABMwhw3Phw==\n-----END CERTIFICATE-----\n"
+             }
+         }
+     },
+     "peers": {
+         "peer0.bank.andongxu.link": {
+             "url": "grpcs://localhost:7051",
+             "grpcOptions": {
+                 "ssl-target-name-override": "peer0.bank.andongxu.link"
+             },
+             "tlsCACerts": {
+                "pem": "-----BEGIN CERTIFICATE-----\nMIICXjCCAgWgAwIBAgIQMXdnNCbE88KdGnCT9pgi/zAKBggqhkjOPQQDAjB6MQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEbMBkGA1UEChMSYmFuay5hbmRvbmd4dS5saW5rMSEwHwYDVQQDExh0\nbHNjYS5iYW5rLmFuZG9uZ3h1LmxpbmswHhcNMTkwMzE1MDc1NDAwWhcNMjkwMzEy\nMDc1NDAwWjB6MQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQG\nA1UEBxMNU2FuIEZyYW5jaXNjbzEbMBkGA1UEChMSYmFuay5hbmRvbmd4dS5saW5r\nMSEwHwYDVQQDExh0bHNjYS5iYW5rLmFuZG9uZ3h1LmxpbmswWTATBgcqhkjOPQIB\nBggqhkjOPQMBBwNCAAT66+b4VhxiArKacbQ48I+5o0gIIALDAV2bLEM0fPPFOPsR\nLTGDoGGuqrbKRGjVn2WtVqgkUbQgv2s6lLMUNg7bo20wazAOBgNVHQ8BAf8EBAMC\nAaYwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMB\nAf8wKQYDVR0OBCIEIHiM+vZMzU8SkIZRAcmjjMtQSWLpr6ZjndBZzBMuILRTMAoG\nCCqGSM49BAMCA0cAMEQCIFmbgKYEC9d61VNL7ssybFPgqRXbvpPCQfRsCNKwAMh0\nAiBEhbh5ffSeEPT3QNsqotbqtKLeiPS66Gg/3mIX62xDbg==\n-----END CERTIFICATE-----\n"
+            }
+         }
+     },
+     "certificateAuthorities": {
+         "ca.bank.andongxu.link": {
+             "url": "http://localhost:7054",
+             "caName": "ca.bank.andongxu.link"
+         }
+     }
+ }

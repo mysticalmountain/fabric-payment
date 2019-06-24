@@ -1,0 +1,163 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+services:
+
+  ca.bank.andongxu.link:
+    container_name: ca.bank.andongxu.link
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.bank.andongxu.link
+        #      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca/ca.bank.andongxu.link-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ca/2096bf47c1c6838b447f0c21f2c76497d6d9681cac84c45b152a175c1c4cf940_sk
+        #- FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/tlsca/tlsca.bank.andongxu.link-cert.pem
+        #- FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/tlsca/788cfaf64ccd4f1290865101c9a38ccb504962e9afa6639dd059cc132e20b453_sk
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./crypto-config/peerOrganizations/bank.andongxu.link/ca/:/etc/hyperledger/fabric-ca-server-config/ca
+      - ./crypto-config/peerOrganizations/bank.andongxu.link/tlsca/:/etc/hyperledger/fabric-ca-server-config/tlsca
+
+  ca.merchant.andongxu.link:
+    container_name: ca.merchant.andongxu.link
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.bank.andongxu.link
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.merchant.andongxu.link-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/0e8c8c0f914f88ee5f1fa0691321694de611e959176542e021240bf538a4c9e3_sk
+    ports:
+      - "8054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/merchant.andongxu.link/ca/:/etc/hyperledger/fabric-ca-server-config
+
+  orderer.andongxu.link:
+    container_name: orderer.andongxu.link
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    environment:
+      - FABRIC_LOGGING_SPEC=info
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/fabric/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/fabric/orderer/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/fabric/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/fabric/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/fabric/orderer/tls/ca.crt]
+      - ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+      - ORDERER_KAFKA_VERBOSE=true
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+      - ./channel-artifacts/channel.tx:/etc/hyperledger/fabric/configtx/channel.tx
+      - ./channel-artifacts/genesis.block:/etc/hyperledger/fabric/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/andongxu.link/orderers/orderer.andongxu.link/:/etc/hyperledger/fabric/orderer
+      - orderer.andongxu.link:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.bank.andongxu.link:
+    container_name: peer0.bank.andongxu.link
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - FABRIC_LOGGING_SPEC=info
+      - CORE_LOGGING_GRPC=DEBUG
+        #- FABRIC_LOGGING_SPEC=debug
+      - CORE_PEER_ID=peer0.bank.andongxu.link
+      - CORE_PEER_ADDRESS=peer0.bank.andongxu.link:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.bank.andongxu.link:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.bank.andongxu.link:7051
+      - CORE_PEER_LOCALMSPID=BankOrgMSP
+      # couchdb environment config
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/bank.andongxu.link/peers/peer0.bank.andongxu.link/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/bank.andongxu.link/peers/peer0.bank.andongxu.link/tls:/etc/hyperledger/fabric/tls
+        - peer0.bank.andongxu.link:/var/hyperledger/production
+    ports:
+      - 7051:7051
+      - 7053:7053
+
+  peer1.bank.andongxu.link:
+    container_name: peer1.bank.andongxu.link
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.bank.andongxu.link
+      - CORE_PEER_ADDRESS=peer1.bank.andongxu.link:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.bank.andongxu.link:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.bank.andongxu.link:7051
+      - CORE_PEER_LOCALMSPID=BankOrgMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/bank.andongxu.link/peers/peer1.bank.andongxu.link/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/bank.andongxu.link/peers/peer1.bank.andongxu.link/tls:/etc/hyperledger/fabric/tls
+        - peer1.bank.andongxu.link:/var/hyperledger/production
+    ports:
+      - 8051:7051
+      - 8053:7053
+
+  peer0.merchant.andongxu.link:
+    container_name: peer0.merchant.andongxu.link
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.merchant.andongxu.link
+      - CORE_PEER_ADDRESS=peer0.merchant.andongxu.link:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.merchant.andongxu.link:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.merchant.andongxu.link:7051
+      - CORE_PEER_LOCALMSPID=MerchantOrgMSP
+      # couchdb environment config
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/merchant.andongxu.link/peers/peer0.merchant.andongxu.link/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/merchant.andongxu.link/peers/peer0.merchant.andongxu.link/tls:/etc/hyperledger/fabric/tls
+        - peer0.merchant.andongxu.link:/var/hyperledger/production
+    ports:
+      - 9051:7051
+      - 9053:7053
+
+  peer1.merchant.andongxu.link:
+    container_name: peer1.merchant.andongxu.link
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.merchant.andongxu.link
+      - CORE_PEER_ADDRESS=peer1.merchant.andongxu.link:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.merchant.andongxu.link:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.merchant.andongxu.link:7051
+      - CORE_PEER_LOCALMSPID=MerchantOrgMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/merchant.andongxu.link/peers/peer1.merchant.andongxu.link/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/merchant.andongxu.link/peers/peer1.merchant.andongxu.link/tls:/etc/hyperledger/fabric/tls
+        - peer1.merchant.andongxu.link:/var/hyperledger/production
+    ports:
+      - 10051:7051
+      - 10053:7053

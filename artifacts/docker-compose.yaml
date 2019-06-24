@@ -1,0 +1,135 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.andongxu.link:
+  ca.bank.andongxu.link:
+  ca.merchant.andongxu.link:
+  peer0.bank.andongxu.link:
+  peer1.bank.andongxu.link:
+  peer0.merchant.andongxu.link:
+  peer1.merchant.andongxu.link:
+
+networks:
+  sample:
+
+services:
+  orderer.andongxu.link:
+    extends:
+      file:   docker-compose-base.yaml
+      service: orderer.andongxu.link
+    container_name: orderer.andongxu.link
+    networks:
+      - sample
+
+  ca.bank.andongxu.link:
+    extends:
+      file:   docker-compose-base.yaml
+      service: ca.bank.andongxu.link
+    container_name: ca.bank.andongxu.link
+    depends_on:
+      - orderer.andongxu.link
+    networks:
+      - sample
+
+  ca.merchant.andongxu.link:
+    extends:
+      file:   docker-compose-base.yaml
+      service: ca.merchant.andongxu.link
+    container_name: ca.merchant.andongxu.link
+    depends_on:
+      - orderer.andongxu.link
+    networks:
+      - sample
+
+  peer0.bank.andongxu.link:
+    container_name: peer0.bank.andongxu.link
+    extends:
+      file:  docker-compose-base.yaml
+      service: peer0.bank.andongxu.link
+    depends_on:
+      - orderer.andongxu.link
+    networks:
+      - sample
+
+  peer1.bank.andongxu.link:
+    container_name: peer1.bank.andongxu.link
+    extends:
+      file:  docker-compose-base.yaml
+      service: peer1.bank.andongxu.link
+    depends_on:
+      - orderer.andongxu.link
+    networks:
+      - sample
+
+  peer0.merchant.andongxu.link:
+    container_name: peer0.merchant.andongxu.link
+    extends:
+      file:  docker-compose-base.yaml
+      service: peer0.merchant.andongxu.link
+    depends_on:
+      - orderer.andongxu.link
+    networks:
+      - sample
+
+  peer1.merchant.andongxu.link:
+    container_name: peer1.merchant.andongxu.link
+    extends:
+      file:  docker-compose-base.yaml
+      service: peer1.merchant.andongxu.link
+    depends_on:
+      - orderer.andongxu.link
+    networks:
+      - sample
+
+  couchdb:
+    container_name: couchdb
+    image: hyperledger/fabric-couchdb
+    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
+    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
+    environment:
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
+    ports:
+      - 5984:5984
+    networks:
+      - sample
+
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.bank.andongxu.link:7051
+      - CORE_PEER_LOCALMSPID=BankOrgMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/crypto/peerOrganizations/bank.andongxu.link/peers/peer0.bank.andongxu.link/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/crypto/peerOrganizations/bank.andongxu.link/peers/peer0.bank.andongxu.link/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/crypto/peerOrganizations/bank.andongxu.link/peers/peer0.bank.andongxu.link/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/crypto/peerOrganizations/bank.andongxu.link/users/Admin@bank.andongxu.link/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config:/etc/hyperledger/fabric/crypto
+        - ./channel-artifacts:/etc/hyperledger/fabric/configtx
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ../src:/opt/gopath/src
+    depends_on:
+      - orderer.andongxu.link
+      - peer0.bank.andongxu.link
+      - peer1.bank.andongxu.link
+      - peer0.merchant.andongxu.link
+      - peer1.merchant.andongxu.link
+    networks:
+      - sample
+
